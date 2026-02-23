@@ -5,6 +5,7 @@ if not data.node_id or not data.node then
 end
 
 local current_node_id = data.node_id
+local node_list = data.node_list or api.get_node_list()
 
 local function get_cfgvalue()
 	return function(self, section)
@@ -94,6 +95,7 @@ o = add_option(Flag, "fakedns", '<a style="color:#FF8C00">FakeDNS</a>' .. " " ..
 local shunt_rules = {}
 m.uci:foreach(appname, "shunt_rules", function(e)
 	e.id = e[".name"]
+	e.remarks = e.remarks or e[".name"]
 	e["_node_option"] = e[".name"]
 	e["_node_default"] = ""
 	e["_fakedns_option"] = e[".name"] .. "_fakedns"
@@ -169,28 +171,20 @@ proxy_tag_node.remove = function(self, section)
 	return m:del(current_node_id, shunt_rules[section]["_proxy_tag_option"])
 end
 
-if data.socks_list then
-	for k, v in pairs(data.socks_list) do
-		_node:value(v.id, v.remark)
-		_node.group[#_node.group+1] = (v.group and v.group ~= "") and v.group or translate("default")
+for k1, v1 in pairs(node_list) do
+	if k1 ~= "shunt_list" then
+		for i, v in ipairs(v1) do
+			_node:value(v.id, v.remark)
+			_node.group[#_node.group+1] = (v.group and v.group ~= "") and v.group or translate("default")
 
-		proxy_tag_node:value(v.id, v.remark)
-		proxy_tag_node.group[#proxy_tag_node.group+1] = (v.group and v.group ~= "") and v.group or translate("default")
-	end
-end
-
-for k, e in ipairs(api.get_valid_nodes()) do
-	if e.protocol ~= "_shunt" then
-		_node:value(e[".name"], e["remark"])
-		_node.group[#_node.group+1] = (e["group"] and e["group"] ~= "") and e["group"] or translate("default")
-
-		proxy_tag_node:value(e[".name"], e["remark"])
-		proxy_tag_node.group[#proxy_tag_node.group+1] = (e["group"] and e["group"] ~= "") and e["group"] or translate("default")
+			proxy_tag_node:value(v.id, v.remark)
+			proxy_tag_node.group[#proxy_tag_node.group+1] = (v.group and v.group ~= "") and v.group or translate("default")
+		end
 	end
 end
 
 local footer = Template(appname .. "/include/shunt_options")
 footer.api = api
 footer.id = current_node_id
-footer.normal_list = api.jsonc.stringify(data.normal_list or {})
+footer.normal_list = api.jsonc.stringify(node_list.normal_list)
 m:append(footer)

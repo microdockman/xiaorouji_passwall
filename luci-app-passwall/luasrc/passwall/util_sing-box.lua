@@ -480,10 +480,10 @@ function gen_outbound(flag, node, tag, proxy_table)
 						end)(),
 				up_mbps = (node.hysteria2_up_mbps and tonumber(node.hysteria2_up_mbps)) and tonumber(node.hysteria2_up_mbps) or nil,
 				down_mbps = (node.hysteria2_down_mbps and tonumber(node.hysteria2_down_mbps)) and tonumber(node.hysteria2_down_mbps) or nil,
-				obfs = {
+				obfs = node.hysteria2_obfs_type and {
 					type = node.hysteria2_obfs_type,
 					password = node.hysteria2_obfs_password
-				},
+				} or nil,
 				password = node.hysteria2_auth_password or nil,
 				tls = {
 					enabled = true,
@@ -793,10 +793,10 @@ function gen_config_server(node)
 		protocol_table = {
 			up_mbps = (node.hysteria2_ignore_client_bandwidth ~= "1" and node.hysteria2_up_mbps and tonumber(node.hysteria2_up_mbps)) and tonumber(node.hysteria2_up_mbps) or nil,
 			down_mbps = (node.hysteria2_ignore_client_bandwidth ~= "1" and node.hysteria2_down_mbps and tonumber(node.hysteria2_down_mbps)) and tonumber(node.hysteria2_down_mbps) or nil,
-			obfs = {
+			obfs = node.hysteria2_obfs_type and {
 				type = node.hysteria2_obfs_type,
 				password = node.hysteria2_obfs_password
-			},
+			} or nil,
 			users = {
 				{
 					name = "user1",
@@ -1250,7 +1250,7 @@ function gen_config(var)
 				local to_node = get_node_by_id(node.to_node)
 				if to_node then
 					-- Landing Node not support use special node.
-					if to_node.protocol:find("_") then
+					if to_node.protocol:find("^_") then
 						to_node = nil
 					end
 				end
